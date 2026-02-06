@@ -6,11 +6,14 @@ const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const statusEl = document.getElementById("status");
+const overlayEl = document.getElementById("overlay");
+const overlayTextEl = document.getElementById("overlay-text");
 const pauseBtn = document.getElementById("pause");
 const restartBtn = document.getElementById("restart");
 
 let state = initState();
 let paused = false;
+let started = false;
 
 function updateStatus() {
   if (state.gameOver) {
@@ -21,6 +24,27 @@ function updateStatus() {
     statusEl.textContent = "Running";
   }
   scoreEl.textContent = `Score: ${state.score}`;
+
+  let overlayText = "";
+  let overlayHint = "";
+  if (state.gameOver) {
+    overlayText = "Game Over";
+    overlayHint = "Press R to restart";
+  } else if (!started) {
+    overlayText = "Ready";
+    overlayHint = "Press any arrow key to start";
+  } else if (paused) {
+    overlayText = "Paused";
+    overlayHint = "Press Space to resume";
+  }
+
+  if (overlayText) {
+    overlayEl.classList.add("show");
+    overlayTextEl.textContent = overlayText;
+    overlayEl.querySelector(".overlay-hint").textContent = overlayHint;
+  } else {
+    overlayEl.classList.remove("show");
+  }
 }
 
 function draw() {
@@ -46,7 +70,7 @@ function draw() {
 }
 
 function loop() {
-  if (!paused && !state.gameOver) {
+  if (!paused && !state.gameOver && started) {
     state = step(state);
   }
   updateStatus();
@@ -56,6 +80,7 @@ function loop() {
 function restart() {
   state = initState();
   paused = false;
+  started = false;
   updateStatus();
   draw();
 }
@@ -67,6 +92,7 @@ function togglePause() {
 }
 
 function handleDirection(dir) {
+  started = true;
   state = setDirection(state, dir);
 }
 
